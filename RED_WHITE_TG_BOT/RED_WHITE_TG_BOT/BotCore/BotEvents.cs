@@ -11,6 +11,9 @@ namespace RED_WHITE_TG_BOT.BotCore
 {
     public static class BotEvents
     {
+        private const string _imageBotHubPath = @"Images\photo_2024-04-06_23-25-09.jpg";
+        private const string _imageChannelPath = @"Images\photo_2024-04-06_23-44-28.jpg";
+
 
         public static Task ListUsersCommandAsync(ITelegramBotClient client, Message message)
         {
@@ -20,7 +23,7 @@ namespace RED_WHITE_TG_BOT.BotCore
             if(!UserCore.TelegramUsers.Any())
                 return Task.CompletedTask;
 
-            return client.SendTextMessageAsync(chat.Id, string.Join('\n', UserCore.TelegramUsers.Select(o => $"ID: {o.ChatId}, NAME: {o.Username}, BALANCE: {o.Points}")));
+            return client.SendTextMessageAsync(chat.Id, string.Join('\n', UserCore.TelegramUsers.Select(o => $"ID: {o.ChatId}, NAME: {o.Username}, BALANCE: {o.Points}")), replyMarkup: CallbackButtonsTelegram.BackToMenu);
         }
 
         public static Task ClearCommandAsync(ITelegramBotClient client, Message message)
@@ -36,11 +39,14 @@ namespace RED_WHITE_TG_BOT.BotCore
             if(UserCore.TelegramUsers.FirstOrDefault(o => o.ChatId.ToString() == id?.LastOrDefault()) is { } user)
             {
                 user.Points = 0;
-                return client.SendTextMessageAsync(chat.Id, "Успешная операция!");
+                return client.SendTextMessageAsync(chat.Id, "Успешная операция!", replyMarkup: CallbackButtonsTelegram.BackToMenu);
             }
 
-            return client.SendTextMessageAsync(chat.Id, "Такого пользовтеля нет!");
+            return client.SendTextMessageAsync(chat.Id, "Такого пользовтеля нет!", replyMarkup: CallbackButtonsTelegram.BackToMenu);
         }
+
+        public static Task MenuCommandAsync(ITelegramBotClient client, Message message)
+            => client.SendTextMessageAsync(message.Chat, "Вы находитесь в меню", replyMarkup: CallbackButtonsTelegram.Menu);
 
         public static Task StartCommandAsync(ITelegramBotClient client, Message message)
         {
@@ -48,12 +54,15 @@ namespace RED_WHITE_TG_BOT.BotCore
                 return Task.CompletedTask;
 
             if (chat.Id.TryCreateAccount(chat.Username ?? "noname"))
-                return client.SendTextMessageAsync(chat.Id, "Тут должно быть приветсвие вашего бота");
+            {
+                var path = Path.GetFullPath(_imageChannelPath);
+                return client.SendPhotoAsync(chat.Id, InputFile.FromStream(System.IO.File.OpenRead(path)), caption: "👋 Вас приветствует магазин Red&White Ukhta\r\n💸 С помощью меня ты можешь копить бонусы на покупки в нашем магазине.\r\nВ дальнейшем вы сможете сделать заказ через этого бота\r\nЧтобы начать копить бонусы, нужно подписаться на наш канал и вступить в чат", replyMarkup: CallbackButtonsTelegram.StartLogin);
+            }
 
             if (!chat.Id.TryGetUser(out var user) || user == null)
                 return client.SendTextMessageAsync(chat.Id, "you gey?");
 
-            return client.SendTextMessageAsync(user.ChatId, $"Рад снова тебя видеть {user.Username}!");
+            return client.SendTextMessageAsync(user.ChatId, $"Рад снова тебя видеть {user.Username}!", replyMarkup: CallbackButtonsTelegram.BackToMenu);
         }
 
         public static Task ProfileCommandAsync(ITelegramBotClient client, Message message)
@@ -64,9 +73,8 @@ namespace RED_WHITE_TG_BOT.BotCore
             if (!chat.Id.TryGetUser(out var user) || user == null)
                 return client.SendTextMessageAsync(chat.Id, "you gey?");
 
-            return client.SendTextMessageAsync(user.ChatId, $"Идентификатор: {user.ChatId}\nБаланс: {user.Points}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            return client.SendTextMessageAsync(user.ChatId, $"Идентификатор: {user.ChatId}\nБаланс: {user.Points}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: CallbackButtonsTelegram.BackToMenu);
         }
-
 
         public static Task PointsCommandAsync(ITelegramBotClient client, Message message)
         {
@@ -77,19 +85,31 @@ namespace RED_WHITE_TG_BOT.BotCore
                 return client.SendTextMessageAsync(chat.Id, "you gey?");
 
             if(user.CheckUpdateToday())
-                return client.SendTextMessageAsync(user.ChatId, $"Сегодня вы уже получали свой бонус!");
+                return client.SendTextMessageAsync(user.ChatId, $"Сегодня вы уже получали свой бонус!", replyMarkup: CallbackButtonsTelegram.BackToMenu);
 
             var value = user.UpdatePoints();
-            return client.SendTextMessageAsync(user.ChatId, $"Вы успешно получили свой бонус!\nБонус: {value}\nВаш баланс: {user.Points}");
-        }
 
+            return client.SendTextMessageAsync(user.ChatId, 
+                value > 0 ? $"Вы успешно получили свой бонус, ждём вас завтра!\nПолучено: +{value}\nВаш баланс: {user.Points}" 
+                : $"Сегодня к сожалению тебе не повезло, ждём вас завтра!\nПолучено: {value}\nВаш баланс: {user.Points}", replyMarkup: CallbackButtonsTelegram.BackToMenu);
+
+        }
 
         public static Task BotAboutCommandAsync(ITelegramBotClient client, Message message)
         {
             if (message.Chat is not { } chat)
                 return Task.CompletedTask;
 
-            return client.SendTextMessageAsync(chat.Id, $"Сделаем любого бота под вашу потребность!\n\nСПЕЦПРЕДЛОЖЕНИЕ ДО 1 МАЯ\nСкидка 70%\n\nПиши менеджеру: @qdcom\n\nПодробнее: @BotHubGroup");
+            var path = Path.GetFullPath(_imageBotHubPath);
+            return client.SendPhotoAsync(chat.Id, InputFile.FromStream(System.IO.File.OpenRead(path)), caption: $"Сделаем любого бота под вашу потребность!\n\nСПЕЦПРЕДЛОЖЕНИЕ ДО 1 МАЯ\nСкидка 70%\n\nПиши менеджеру: @qdcom\n\nПодробнее: @BotHubGroup", replyMarkup: CallbackButtonsTelegram.BackToMenu);
+        }
+
+        public static Task NoLoginAsync(ITelegramBotClient client, Message message)
+        {
+            if (message.Chat is not { } chat)
+                return Task.CompletedTask;
+
+            return client.SendTextMessageAsync(chat.Id, $"Что бы продолжить, нужно подписаться!", replyMarkup: CallbackButtonsTelegram.StartLogin);
         }
 
         public static Task DefaultCommandAsync(ITelegramBotClient client, Message message)
@@ -97,7 +117,7 @@ namespace RED_WHITE_TG_BOT.BotCore
             if (message.Chat is not { } chat)
                 return Task.CompletedTask;
 
-            return client.SendTextMessageAsync(chat.Id, $"Не совсем понял что вы хотите!");
+            return client.SendTextMessageAsync(chat.Id, $"Не совсем понял что вы хотите!", replyMarkup: CallbackButtonsTelegram.BackToMenu);
         }
     }
 }

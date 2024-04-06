@@ -2,14 +2,15 @@
 using Telegram.Bot.Types;
 using RED_WHITE_TG_BOT.Core;
 using RED_WHITE_TG_BOT.BotCore;
+using Telegram.Bot.Types.Enums;
 
 namespace RED_WHITE_TG_BOT
 {
     public static class Program
     {
         public static ITelegramBotClient? ClientBot { get; set; }
-        private static CommandCallback[]? _callbacks;
-        private static CommandCallback[]? _callbacksAdmin;
+        private static CommandTelegram[]? _callbacks;
+        private static CommandTelegram[]? _callbacksAdmin;
         private const long ADMIN_ID = 1735628011;
 
         static async Task Main(string[] args)
@@ -47,8 +48,8 @@ namespace RED_WHITE_TG_BOT
                     Description = "помощь"
                 },
                 (b,m) => b.SendTextMessageAsync(m.Chat.Id, string.Join('\n',_callbacks!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}"))
-                    + '\n' + (m.Chat.Id == ADMIN_ID ? string.Join('\n', _callbacksAdmin!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}")) : string.Empty)))
-            
+                    + '\n' + (m.Chat.Id == ADMIN_ID ? string.Join('\n', _callbacksAdmin!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}")) : string.Empty), replyMarkup: CallbackButtonsTelegram.BackToMenu))
+
             ];
 
             _callbacksAdmin = [
@@ -70,27 +71,142 @@ namespace RED_WHITE_TG_BOT
             await Task.Delay(Timeout.Infinite);
         }
 
-
         private static Task Update(ITelegramBotClient client, Update update, CancellationToken token)
         {
+            switch (update.Type)
+            {
+                case UpdateType.Unknown:
+                    break;
+                case UpdateType.Message:
+                    return UpdateMessage(client, update, token);
+
+                case UpdateType.InlineQuery:
+                    break;
+                case UpdateType.ChosenInlineResult:
+                    break;
+                case UpdateType.CallbackQuery:
+                    var messageAnswer = UpdateCallback(client, update, token);
+
+                    if (update.CallbackQuery?.Message is { } message)
+                        client.DeleteMessageAsync(message.Chat, message.MessageId, token);
+
+                    return messageAnswer;
+
+                case UpdateType.EditedMessage:
+                    break;
+                case UpdateType.ChannelPost:
+                    break;
+                case UpdateType.EditedChannelPost:
+                    break;
+                case UpdateType.ShippingQuery:
+                    break;
+                case UpdateType.PreCheckoutQuery:
+                    break;
+                case UpdateType.Poll:
+                    break;
+                case UpdateType.PollAnswer:
+                    break;
+                case UpdateType.MyChatMember:
+                    break;
+                case UpdateType.ChatMember:
+                    break;
+                case UpdateType.ChatJoinRequest:
+                    break;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private static async Task<bool> CheckLogin(ITelegramBotClient client, User user, CancellationToken token)
+        {
+            var chat = await client.GetChatMemberAsync("@SelfDevelopment_X", user.Id, token);
+
+            return chat.Status == ChatMemberStatus.Creator || chat.Status == ChatMemberStatus.Administrator || chat.Status == ChatMemberStatus.Member;
+        }
+
+        private static async Task UpdateMessage(ITelegramBotClient client, Update update, CancellationToken token)
+        {
+
             if (update.Message is not { } message)
-                return Task.CompletedTask;
+                return;
 
             if (message.Text is not { } messageText)
-                return Task.CompletedTask;
+                return;
 
             Console.WriteLine($"username: {message.Chat.Username}, chatId: {message.Chat.Id}, message: {messageText}");
 
+            if (message.From is { } from && !await CheckLogin(client, from, token))
+            {
+                await BotEvents.NoLoginAsync(client, message);
+                return;
+            }
+
             for (int i = 0; i < _callbacks?.Length; i++)
                 if (messageText.Contains(_callbacks[i].BotCommand.Command))
-                    return _callbacks[i].InvokeAsync(client, message);
+                {
+                    await _callbacks[i].InvokeAsync(client, message);
+                    return;
+                }
 
-            if(message.Chat.Id == ADMIN_ID)
+            if (message.Chat.Id == ADMIN_ID)
                 for (int i = 0; i < _callbacksAdmin?.Length; i++)
                     if (messageText.Contains(_callbacksAdmin[i].BotCommand.Command))
-                        return _callbacksAdmin[i].InvokeAsync(client, message);
+                    {
+                        await _callbacksAdmin[i].InvokeAsync(client, message);
+                        return;
+                    }
 
-            return BotEvents.DefaultCommandAsync(client, message);
+            await BotEvents.DefaultCommandAsync(client, message);
+        }
+
+        private static async Task UpdateCallback(ITelegramBotClient client, Update update, CancellationToken token)
+        {
+
+            if (update.CallbackQuery is not { } callbackQuery)
+                return;
+
+            if (callbackQuery.Data is not { } callbackQueryData)
+                return;
+
+            if (callbackQuery.Message is not { } message)
+                return;
+
+            Console.WriteLine($"username: {message.Chat.Username}, chatId: {message.Chat.Id}, callbackData: {callbackQueryData}");
+
+            if (callbackQuery.From is { } from && !await CheckLogin(client, from, token))
+            {
+                await BotEvents.NoLoginAsync(client, message);
+                return;
+            }
+
+            if (callbackQueryData == "menu")
+            {
+                await BotEvents.MenuCommandAsync(client, message);
+                return;
+            }
+
+            for (int i = 0; i < _callbacks?.Length; i++)
+                if (callbackQueryData.Contains(_callbacks[i].BotCommand.Command))
+                {
+                    await _callbacks[i].InvokeAsync(client, message);
+                    return;
+                }
+
+            if (message.Chat.Id == ADMIN_ID)
+                for (int i = 0; i < _callbacksAdmin?.Length; i++)
+                    if (callbackQueryData.Contains(_callbacksAdmin[i].BotCommand.Command))
+                    {
+                        await _callbacksAdmin[i].InvokeAsync(client, message);
+                        return;
+                    }
+
+            if(callbackQueryData == "checkLogin")
+            {
+                await BotEvents.MenuCommandAsync(client, message);
+                return;
+            }
+
+            await BotEvents.DefaultCommandAsync(client, message);
         }
 
         private static async Task Exception(ITelegramBotClient client, Exception exception, CancellationToken token)

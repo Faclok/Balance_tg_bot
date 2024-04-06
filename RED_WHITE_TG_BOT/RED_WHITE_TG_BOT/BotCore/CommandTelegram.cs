@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 
 namespace RED_WHITE_TG_BOT.BotCore
 {
-    public class CommandCallback(BotCommand command, Func<ITelegramBotClient, Message, Task> callback)
+    public class CommandTelegram(BotCommand command, Func<ITelegramBotClient, Message, Task> callback)
     {
         public event Action<ITelegramBotClient, Message>? OnMessage;
         private readonly Func<ITelegramBotClient, Message, Task> _callback = callback;
