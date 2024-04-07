@@ -12,12 +12,14 @@ namespace RED_WHITE_TG_BOT
         private static CommandTelegram[]? _callbacks;
         private static CommandTelegram[]? _callbacksAdmin;
         private const long ADMIN_ID = 1735628011;
+        public static string? BotName { get; private set; }
 
         static async Task Main(string[] args)
         {
             await Console.Out.WriteLineAsync("start");
             ClientBot = new TelegramBotClient("7100286967:AAEZV17IDYfxcTwa28oLrc1MqXldb0VsDb4");
-            await Console.Out.WriteLineAsync("my name: " + (await ClientBot.GetMeAsync()).Username);
+            BotName = (await ClientBot.GetMeAsync()).Username;
+            await Console.Out.WriteLineAsync("my name: " + BotName);
 
             await Console.Out.WriteLineAsync("Загружаем команды");
 
@@ -120,6 +122,9 @@ namespace RED_WHITE_TG_BOT
         private static async Task<bool> CheckLogin(ITelegramBotClient client, User user, CancellationToken token)
         {
             var chat = await client.GetChatMemberAsync("@SelfDevelopment_X", user.Id, token);
+
+            if(chat == null)
+                return false;
 
             return chat.Status == ChatMemberStatus.Creator || chat.Status == ChatMemberStatus.Administrator || chat.Status == ChatMemberStatus.Member;
         }

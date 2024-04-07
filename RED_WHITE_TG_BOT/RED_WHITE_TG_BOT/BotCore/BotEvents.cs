@@ -55,6 +55,13 @@ namespace RED_WHITE_TG_BOT.BotCore
 
             if (chat.Id.TryCreateAccount(chat.Username ?? "noname"))
             {
+                if(message.Text is { } text)
+                {
+                    var split = text.Split(' ');
+                    if(split.Length > 1 && long.TryParse(split[1], out var parseId) && parseId.TryGetUser(out var userLink) && userLink != null)
+                        userLink.AddPoints(10);
+                }
+
                 var path = Path.GetFullPath(_imageChannelPath);
                 return client.SendPhotoAsync(chat.Id, InputFile.FromStream(System.IO.File.OpenRead(path)), caption: "👋 Вас приветствует магазин Red&White Ukhta\r\n💸 С помощью меня ты можешь копить бонусы на покупки в нашем магазине.\r\nВ дальнейшем вы сможете сделать заказ через этого бота\r\nЧтобы начать копить бонусы, нужно подписаться на наш канал и вступить в чат", replyMarkup: CallbackButtonsTelegram.StartLogin);
             }
@@ -73,7 +80,13 @@ namespace RED_WHITE_TG_BOT.BotCore
             if (!chat.Id.TryGetUser(out var user) || user == null)
                 return client.SendTextMessageAsync(chat.Id, "you gey?");
 
-            return client.SendTextMessageAsync(user.ChatId, $"Идентификатор: {user.ChatId}\nБаланс: {user.Points}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: CallbackButtonsTelegram.BackToMenu);
+            return SendProfile();
+
+            async Task SendProfile()
+                  {
+                    await client.SendTextMessageAsync(user.ChatId, $"Идентификатор: {user.ChatId}\nБаланс: {user.Points}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: CallbackButtonsTelegram.BackToMenu);
+                    await client.SendTextMessageAsync(user.ChatId, $"[Ваша реферальная ссылка!\nМожете ее переслать или скопировать!](https://t.me/{Program.BotName}?start={user.ChatId})", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                  }
         }
 
         public static Task PointsCommandAsync(ITelegramBotClient client, Message message)
