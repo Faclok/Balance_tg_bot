@@ -11,8 +11,8 @@ namespace RED_WHITE_TG_BOT.BotCore
 {
     public static class BotEvents
     {
-        private const string _imageBotHubPath = @"Images\photo_2024-04-06_23-25-09.jpg";
-        private const string _imageChannelPath = @"Images\photo_2024-04-06_23-44-28.jpg";
+        private const string _imageBotHubPath = @"Images/photo_2024-04-06_23-25-09.jpg";
+        private const string _imageChannelPath = @"Images/photo_2024-04-06_23-44-28.jpg";
 
 
         public static Task ListUsersCommandAsync(ITelegramBotClient client, Message message)
