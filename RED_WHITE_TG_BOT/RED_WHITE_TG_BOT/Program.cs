@@ -11,13 +11,13 @@ namespace RED_WHITE_TG_BOT
         public static ITelegramBotClient? ClientBot { get; set; }
         private static CommandTelegram[]? _callbacks;
         private static CommandTelegram[]? _callbacksAdmin;
-        private const long ADMIN_ID = 1735628011;
+        private const long ADMIN_ID = 768764104;
         public static string? BotName { get; private set; }
 
         static async Task Main(string[] args)
         {
             await Console.Out.WriteLineAsync("start");
-            ClientBot = new TelegramBotClient("7100286967:AAEZV17IDYfxcTwa28oLrc1MqXldb0VsDb4");
+            ClientBot = new TelegramBotClient("6493316356:AAEBh_zDmbcRe3hylRjIBvc1zLURu8H-eLs");
             BotName = (await ClientBot.GetMeAsync()).Username;
             await Console.Out.WriteLineAsync("my name: " + BotName);
 
@@ -121,12 +121,14 @@ namespace RED_WHITE_TG_BOT
 
         private static async Task<bool> CheckLogin(ITelegramBotClient client, User user, CancellationToken token)
         {
-            var chat = await client.GetChatMemberAsync("@SelfDevelopment_X", user.Id, token);
+            var channel = await client.GetChatMemberAsync("@bariga1313", user.Id, token);
+            var chat = await client.GetChatMemberAsync("@bariga13131313", user.Id, token);
 
-            if(chat == null)
+            if (chat == null || channel == null)
                 return false;
 
-            return chat.Status == ChatMemberStatus.Creator || chat.Status == ChatMemberStatus.Administrator || chat.Status == ChatMemberStatus.Member;
+            return (chat.Status == ChatMemberStatus.Creator || chat.Status == ChatMemberStatus.Administrator || chat.Status == ChatMemberStatus.Member)
+            && (channel.Status == ChatMemberStatus.Creator || channel.Status == ChatMemberStatus.Administrator || channel.Status == ChatMemberStatus.Member);
         }
 
         private static async Task UpdateMessage(ITelegramBotClient client, Update update, CancellationToken token)
@@ -178,10 +180,15 @@ namespace RED_WHITE_TG_BOT
 
             Console.WriteLine($"username: {message.Chat.Username}, chatId: {message.Chat.Id}, callbackData: {callbackQueryData}");
 
-            if (callbackQuery.From is { } from && !await CheckLogin(client, from, token))
+            if (callbackQuery.From is { } from)
             {
-                await BotEvents.NoLoginAsync(client, message);
-                return;
+                if (!await CheckLogin(client, from, token))
+                {
+                    await BotEvents.NoLoginAsync(client, message);
+                    return;
+                }
+                if (callbackQueryData == "checkLogin")
+                    from.Id.TryCreateAccount(from.Username ?? "noname");
             }
 
             if (callbackQueryData == "menu")
@@ -205,7 +212,7 @@ namespace RED_WHITE_TG_BOT
                         return;
                     }
 
-            if(callbackQueryData == "checkLogin")
+            if (callbackQueryData == "checkLogin")
             {
                 await BotEvents.MenuCommandAsync(client, message);
                 return;
