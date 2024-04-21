@@ -11,13 +11,13 @@ namespace RED_WHITE_TG_BOT
         public static ITelegramBotClient? ClientBot { get; set; }
         private static CommandTelegram[]? _callbacks;
         private static CommandTelegram[]? _callbacksAdmin;
-        private const long ADMIN_ID = 768764104;
+        private const long ADMIN_ID = 1735628011;
         public static string? BotName { get; private set; }
 
         static async Task Main(string[] args)
         {
             await Console.Out.WriteLineAsync("start");
-            ClientBot = new TelegramBotClient("6493316356:AAEBh_zDmbcRe3hylRjIBvc1zLURu8H-eLs");
+            ClientBot = new TelegramBotClient("7100286967:AAEZV17IDYfxcTwa28oLrc1MqXldb0VsDb4");//("6493316356:AAEBh_zDmbcRe3hylRjIBvc1zLURu8H-eLs");
             BotName = (await ClientBot.GetMeAsync()).Username;
             await Console.Out.WriteLineAsync("my name: " + BotName);
 
@@ -46,11 +46,16 @@ namespace RED_WHITE_TG_BOT
                 }, BotEvents.BotAboutCommandAsync),
                 new(new()
                 {
+                    Command = "sendlink",
+                    Description = "Реф. ссылка"
+                }, BotEvents.BotAboutCommandAsync),
+                new(new()
+                {
                     Command = "help",
                     Description = "помощь"
                 },
                 (b,m) => b.SendTextMessageAsync(m.Chat.Id, string.Join('\n',_callbacks!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}"))
-                    + '\n' + (m.Chat.Id == ADMIN_ID ? string.Join('\n', _callbacksAdmin!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}")) : string.Empty), replyMarkup: CallbackButtonsTelegram.BackToMenu))
+                    + '\n' + (m.Chat.Id == ADMIN_ID ? string.Join('\n', _callbacksAdmin!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}")) : string.Empty)))
 
             ];
 
@@ -140,13 +145,23 @@ namespace RED_WHITE_TG_BOT
             if (message.Text is not { } messageText)
                 return;
 
+            messageText = messageText switch
+            {
+                "🔥 Старт" => "start",
+                "⭐️ Профиль" => "profile",
+                "🤔 откуда бот" => "bot",
+                "🤝 Реф. ссылка" => "sendlink",
+                "💰 Получить бонусы" => "points",
+                _ => messageText
+            };
+
             Console.WriteLine($"username: {message.Chat.Username}, chatId: {message.Chat.Id}, message: {messageText}");
 
-            if (message.From is { } from && !await CheckLogin(client, from, token))
-            {
-                await BotEvents.NoLoginAsync(client, message);
-                return;
-            }
+            // if (message.From is { } from )//&& !await CheckLogin(client, from, token))
+            //{
+            // await BotEvents.NoLoginAsync(client, message);
+            //return;
+            //}
 
             for (int i = 0; i < _callbacks?.Length; i++)
                 if (messageText.Contains(_callbacks[i].BotCommand.Command))
@@ -182,11 +197,11 @@ namespace RED_WHITE_TG_BOT
 
             if (callbackQuery.From is { } from)
             {
-                if (!await CheckLogin(client, from, token))
-                {
-                    await BotEvents.NoLoginAsync(client, message);
-                    return;
-                }
+                //if (!await CheckLogin(client, from, token))
+                //{
+                //    await BotEvents.NoLoginAsync(client, message);
+                //    return;
+                //}
                 if (callbackQueryData == "checkLogin")
                     from.Id.TryCreateAccount(from.Username ?? "noname");
             }

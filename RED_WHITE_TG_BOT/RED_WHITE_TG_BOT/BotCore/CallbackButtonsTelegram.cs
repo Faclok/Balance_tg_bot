@@ -10,47 +10,26 @@ namespace RED_WHITE_TG_BOT.BotCore
 {
     public static class CallbackButtonsTelegram
     {
-        public static InlineKeyboardMarkup Menu { get; } = new(new[]{
+        public static ReplyKeyboardMarkup Menu { get; } = new(new[]{
             new[]
             {
-                new InlineKeyboardButton("профиль")
-                {
-                    CallbackData = "profile"
-                }
+                new KeyboardButton("🔥 Старт"),
+                new KeyboardButton("⭐️ Профиль")
             },
             new[]
             {
-               new InlineKeyboardButton("Собрать бонусы")
-               {
-                    CallbackData = "points"
-               },
-
+              new KeyboardButton("🤔 откуда бот"),
+              new KeyboardButton("🤝 Реф. ссылка")
             },
             new[]
             {
-              new InlineKeyboardButton("Помощь")
-              {
-                    CallbackData = "help"
-              },
-            },
-            new[]
-            {
-                new InlineKeyboardButton("От куда бот?")
-                {
-                    CallbackData = "bot"
-                }
+                new KeyboardButton("💰 Получить бонусы")
             }
-        });
+        })
+        { 
+            ResizeKeyboard = true
+        };
 
-        public static InlineKeyboardMarkup BackToMenu { get; } = new(new[]{
-            new[]
-            {
-                new InlineKeyboardButton("меню")
-                {
-                    CallbackData = "menu"
-                }
-            }
-        });
 
         public static InlineKeyboardMarkup StartLogin { get; } = new(new[]{
             new[]
