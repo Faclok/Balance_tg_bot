@@ -30,7 +30,7 @@ namespace RED_WHITE_TG_BOT.Core
             if (_todayUpdate.Any(o => o.ChatId == user.ChatId))
                 return 0;
 
-            var randomValue = Random.Shared.Next(-10, 10);
+            var randomValue = Random.Shared.Next(-7, 10);
 
             _todayUpdate.Add(user);
             user.AddPoints(randomValue);

@@ -11,7 +11,7 @@ namespace RED_WHITE_TG_BOT
         public static ITelegramBotClient? ClientBot { get; set; }
         private static CommandTelegram[]? _callbacks;
         private static CommandTelegram[]? _callbacksAdmin;
-        private const long ADMIN_ID = 1735628011;
+        public const long ADMIN_ID = 1735628011;
         public static string? BotName { get; private set; }
 
         static async Task Main(string[] args)
@@ -48,11 +48,11 @@ namespace RED_WHITE_TG_BOT
                 {
                     Command = "sendlink",
                     Description = "Реф. ссылка"
-                }, BotEvents.BotAboutCommandAsync),
+                }, BotEvents.SendLinkCommandAsync),
                 new(new()
                 {
                     Command = "help",
-                    Description = "помощь"
+                    Description = "Помощь"
                 },
                 (b,m) => b.SendTextMessageAsync(m.Chat.Id, string.Join('\n',_callbacks!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}"))
                     + '\n' + (m.Chat.Id == ADMIN_ID ? string.Join('\n', _callbacksAdmin!.Select(o => $"/{o.BotCommand.Command} - {o.BotCommand.Description}")) : string.Empty)))
@@ -152,6 +152,8 @@ namespace RED_WHITE_TG_BOT
                 "🤔 откуда бот" => "bot",
                 "🤝 Реф. ссылка" => "sendlink",
                 "💰 Получить бонусы" => "points",
+                "\U0001f921 Список участников" => "all",
+                "💩 Обнулить баллы" => "clear",
                 _ => messageText
             };
 

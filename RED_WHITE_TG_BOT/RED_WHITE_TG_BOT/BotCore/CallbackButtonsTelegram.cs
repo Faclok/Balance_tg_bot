@@ -1,16 +1,14 @@
-﻿using System;
+﻿using RED_WHITE_TG_BOT.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Telegram.Bot.Types.ReplyMarkups;
-using static System.Net.WebRequestMethods;
 
 namespace RED_WHITE_TG_BOT.BotCore
 {
     public static class CallbackButtonsTelegram
     {
-        public static ReplyKeyboardMarkup Menu { get; } = new(new[]{
+        private readonly static ReplyKeyboardMarkup _menuSimple = new(new[]{
             new[]
             {
                 new KeyboardButton("🔥 Старт"),
@@ -26,9 +24,43 @@ namespace RED_WHITE_TG_BOT.BotCore
                 new KeyboardButton("💰 Получить бонусы")
             }
         })
-        { 
+        {
             ResizeKeyboard = true
         };
+
+        private readonly static ReplyKeyboardMarkup _menuAdmin = new(new[]{
+            new[]
+            {
+                new KeyboardButton("🔥 Старт"),
+                new KeyboardButton("⭐️ Профиль")
+            },
+            new[]
+            {
+              new KeyboardButton("🤔 откуда бот"),
+              new KeyboardButton("🤝 Реф. ссылка")
+            },
+            new[]
+            {
+              new KeyboardButton("\U0001f921 Список участников"),
+              new KeyboardButton("💩 Обнулить баллы")
+            },
+            new[]
+            {
+                new KeyboardButton("💰 Получить бонусы")
+            }
+        })
+        {
+            ResizeKeyboard = true
+        };
+
+
+        public static ReplyKeyboardMarkup GetMenu(TelegramUser? user)
+        {
+            if (user != null && user.ChatId == Program.ADMIN_ID)
+                return _menuAdmin;
+
+            return _menuSimple;
+        }
 
 
         public static InlineKeyboardMarkup StartLogin { get; } = new(new[]{
