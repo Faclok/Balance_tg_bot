@@ -205,7 +205,7 @@ namespace RED_WHITE_TG_BOT
                 //    return;
                 //}
                 if (callbackQueryData == "checkLogin")
-                    from.Id.TryCreateAccount(from.Username ?? "noname");
+                    await from.Id.TryCreateAccountAsync(from.Username ?? "noname");
             }
 
             if (callbackQueryData == "menu")
