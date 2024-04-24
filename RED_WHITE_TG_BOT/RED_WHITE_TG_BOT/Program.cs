@@ -11,13 +11,13 @@ namespace RED_WHITE_TG_BOT
         public static ITelegramBotClient? ClientBot { get; set; }
         private static CommandTelegram[]? _callbacks;
         private static CommandTelegram[]? _callbacksAdmin;
-        public const long ADMIN_ID = 1735628011;
+        public const long ADMIN_ID = 768764104;
         public static string? BotName { get; private set; }
 
         static async Task Main(string[] args)
         {
             await Console.Out.WriteLineAsync("start");
-            ClientBot = new TelegramBotClient("7100286967:AAEZV17IDYfxcTwa28oLrc1MqXldb0VsDb4");//("6493316356:AAEBh_zDmbcRe3hylRjIBvc1zLURu8H-eLs");
+            ClientBot = new TelegramBotClient("6493316356:AAEBh_zDmbcRe3hylRjIBvc1zLURu8H-eLs");
             BotName = (await ClientBot.GetMeAsync()).Username;
             await Console.Out.WriteLineAsync("my name: " + BotName);
 
@@ -159,11 +159,11 @@ namespace RED_WHITE_TG_BOT
 
             Console.WriteLine($"username: {message.Chat.Username}, chatId: {message.Chat.Id}, message: {messageText}");
 
-            // if (message.From is { } from )//&& !await CheckLogin(client, from, token))
-            //{
-            // await BotEvents.NoLoginAsync(client, message);
-            //return;
-            //}
+            if (message.From is { } from && !await CheckLogin(client, from, token))
+            {
+                await BotEvents.NoLoginAsync(client, message);
+                return;
+            }
 
             for (int i = 0; i < _callbacks?.Length; i++)
                 if (messageText.Contains(_callbacks[i].BotCommand.Command))
@@ -199,11 +199,11 @@ namespace RED_WHITE_TG_BOT
 
             if (callbackQuery.From is { } from)
             {
-                //if (!await CheckLogin(client, from, token))
-                //{
-                //    await BotEvents.NoLoginAsync(client, message);
-                //    return;
-                //}
+                if (!await CheckLogin(client, from, token))
+                {
+                    await BotEvents.NoLoginAsync(client, message);
+                    return;
+                }
                 if (callbackQueryData == "checkLogin")
                     await from.Id.TryCreateAccountAsync(from.Username ?? "noname");
             }

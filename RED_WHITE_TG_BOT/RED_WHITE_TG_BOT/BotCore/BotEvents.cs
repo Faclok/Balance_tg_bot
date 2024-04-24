@@ -12,8 +12,8 @@ namespace RED_WHITE_TG_BOT.BotCore
 {
     public static class BotEvents
     {
-        private const string _imageBotHubPath = @"Images\photo_2024-04-06_23-25-09.jpg";
-        private const string _imageChannelPath = @"Images\photo_2024-04-06_23-44-28.jpg";
+        private const string _imageBotHubPath = @"Images/photo_2024-04-06_23-25-09.jpg";
+        private const string _imageChannelPath = @"Images/photo_2024-04-06_23-44-28.jpg";
 
         public static async Task ListUsersCommandAsync(ITelegramBotClient client, Message message)
         {
@@ -23,7 +23,7 @@ namespace RED_WHITE_TG_BOT.BotCore
             if (!await UserCore.AnyAsync())
                 return;
 
-            await client.SendTextMessageAsync(chat.Id, string.Join('\n', (await UserCore.GetAllAsync()).Select(o => $"ID: `{o.ChatId}`, NAME: {o.Username}, BALANCE: {o.Points}")), parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2);
+            await client.SendTextMessageAsync(chat.Id, string.Join('\n', (await UserCore.GetAllAsync()).Select(o => $"ID: `{o.ChatId}`, NAME: {o.Username}, BALANCE: {o.Points.ToString().Replace("-", @"\-")}")), parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2);
         }
 
         public static async Task ClearCommandAsync(ITelegramBotClient client, Message message)
@@ -84,10 +84,7 @@ namespace RED_WHITE_TG_BOT.BotCore
                 return;
 
             if (await chat.Id.TryGetUserAsync() is not { } user)
-            {
-                await client.SendTextMessageAsync(chat.Id, "you gey?");
                 return;
-            }
 
             await client.SendTextMessageAsync(user.ChatId, $"🤖 ID: {user.ChatId}\n💰 Баланс: {user.Points}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
         }
@@ -98,10 +95,7 @@ namespace RED_WHITE_TG_BOT.BotCore
                 return;
 
             if (await chat.Id.TryGetUserAsync() is not { } user)
-            {
-                await client.SendTextMessageAsync(chat.Id, "you gey?");
                 return;
-            }
 
             if (user.CheckUpdateToday())
                {
