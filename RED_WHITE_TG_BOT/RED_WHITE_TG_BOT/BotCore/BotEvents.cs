@@ -23,7 +23,7 @@ namespace RED_WHITE_TG_BOT.BotCore
             if (!await UserCore.AnyAsync())
                 return;
 
-            await client.SendTextMessageAsync(chat.Id, string.Join('\n', (await UserCore.GetAllAsync()).Select(o => $"ID: `{o.ChatId}`, NAME: {o.Username}, BALANCE: {o.Points.ToString().Replace("-", @"\-")}")), parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2);
+            await client.SendTextMessageAsync(chat.Id, string.Join('\n', (await UserCore.GetAllAsync()).Select(o => $"ID: `{o.ChatId}`, BALANCE: {o.Points.ToString().Replace("-", @"\-")}")), parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2);
         }
 
         public static async Task ClearCommandAsync(ITelegramBotClient client, Message message)
