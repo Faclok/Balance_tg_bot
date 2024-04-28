@@ -142,6 +142,9 @@ namespace RED_WHITE_TG_BOT
             if (update.Message is not { } message)
                 return;
 
+            if (message.Chat.Type != ChatType.Private)
+                return;
+
             if (message.Text is not { } messageText)
                 return;
 
@@ -161,7 +164,7 @@ namespace RED_WHITE_TG_BOT
 
             if (message.From is { } from && !await CheckLogin(client, from, token))
             {
-                await BotEvents.NoLoginAsync(client, message);
+                await BotEvents.StartCommandAsync(client, message);
                 return;
             }
 
@@ -195,13 +198,16 @@ namespace RED_WHITE_TG_BOT
             if (callbackQuery.Message is not { } message)
                 return;
 
+            if (message.Chat.Type != ChatType.Private)
+                return;
+
             Console.WriteLine($"username: {message.Chat.Username}, chatId: {message.Chat.Id}, callbackData: {callbackQueryData}");
 
             if (callbackQuery.From is { } from)
             {
                 if (!await CheckLogin(client, from, token))
                 {
-                    await BotEvents.NoLoginAsync(client, message);
+                    await BotEvents.StartCommandAsync(client, message);
                     return;
                 }
                 if (callbackQueryData == "checkLogin")

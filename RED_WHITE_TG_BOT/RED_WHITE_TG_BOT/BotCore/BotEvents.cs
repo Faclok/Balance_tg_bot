@@ -130,15 +130,7 @@ namespace RED_WHITE_TG_BOT.BotCore
 
             await client.SendTextMessageAsync(user.ChatId, $"Всем салам алейкум от основателя R&W Герыча, Гарей, как вам удобно.\nНадеюсь вы уже разобрались что и как в нашем боте и для чего он вообще был сделан.\nКонечно мы не забыли про индивидуальную реферальную ссылку: [https://t.me/{Program.BotName}?start={user.ChatId}](https://t.me/{Program.BotName}?start={user.ChatId})\nЗа каждого приглашенного вами друга, вам будет капать в бота 10 бонусов, которые равны 10 рублям.\nНадеюсь всем все понятно, но если вопросы все же возникнут, то обращайтесь к главному админу, всем отвечу.\nВсех люблю❤️\nP.s. Админ [R&W](https://t.me/bariga1313)", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
         }
-
-        public static Task NoLoginAsync(ITelegramBotClient client, Message message)
-        {
-            if (message.Chat is not { } chat)
-                return Task.CompletedTask;
-
-            return client.SendTextMessageAsync(chat.Id, $"Что бы продолжить, нужно подписаться!", replyMarkup: CallbackButtonsTelegram.StartLogin);
-        }
-
+        
         public static Task DefaultCommandAsync(ITelegramBotClient client, Message message)
         {
             if (message.Chat is not { } chat)
