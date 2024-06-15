@@ -5,21 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Balance
 {
     public static class PlatformCollection
     {
-        private static readonly List<Platform> _platforms = [];
+        private static readonly Dictionary<InlineKeyboardButton, Func<Platform>> _platforms = [];
 
-        public static void PlatformAdd(Platform platform)
-           => _platforms.Add(platform);
+        public static void PlatformAdd(InlineKeyboardButton key, Func<Platform> platform)
+           => _platforms.Add(key, platform);
 
-        public static void PlatformAdd(params Platform[] platform) 
-           =>  _platforms.AddRange(platform);
-
-        public static IEnumerable<Platform> GetPlatforms()
-            => _platforms;
+        public static IEnumerable<InlineKeyboardButton> GetMains()
+            => _platforms.Select(o => o.Key);
 
         public static event Action<Platform>? OnSelected;
 
@@ -27,13 +25,14 @@ namespace Balance
         {
             if(update.CallbackQuery is { } callback && callback.Message is { } message)
             {
-                var platform = _platforms.FirstOrDefault(o => o.Main.CallbackData == callback.Data);
+                var platform = _platforms.FirstOrDefault(o => o.Key.CallbackData == callback.Data);
 
-                if (platform == null)
+                if (platform.Key?.CallbackData is not { } data || data != callback.Data)
                     return Task.CompletedTask;
 
-                OnSelected?.Invoke(platform);
-                platform.StartRG(client, message.Chat, token);
+                var platformValue = platform.Value();
+                OnSelected?.Invoke(platformValue);
+                platformValue.StartRG(client, message.Chat, token);
             }
 
             return Task.CompletedTask;

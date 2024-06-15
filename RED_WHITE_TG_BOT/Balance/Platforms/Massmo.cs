@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Telegram.Bot.Types.Enums;
+﻿using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
+using Balance.GoogleSheet;
+using Google.Apis.Sheets.v4.Data;
 
 namespace Balance.Platforms
 {
-    public class Massmo : Platform
+    public class Massmo(string googleSheetId, IGoogleSheetsManager googleSheets) : Platform
     {
 
         #region Fields
@@ -20,9 +17,12 @@ namespace Balance.Platforms
         private const string SUCCESS_MONEY = "success_money";
         private const string FAILED_MONEY = "failed_money";
 
-        private bool IsMoneyInput = false;
-        private int Money = 0;
+        private DateTime startClick;
         private string Platform = string.Empty;
+        private string? currentPlatform;
+        private float Money = 0;
+        private float camisa = 0f;
+        private bool IsMoneyInput = false;
 
         #endregion
 
@@ -58,8 +58,8 @@ namespace Balance.Platforms
                 }
             });
 
-        public override InlineKeyboardButton Main => _main;
-        private static readonly InlineKeyboardButton _main = new(nameof(Massmo)) { CallbackData =  nameof(Massmo) };
+        public override InlineKeyboardButton Main => MainGlobal;
+        public static readonly InlineKeyboardButton MainGlobal = new(nameof(Massmo)) { CallbackData =  nameof(Massmo) };
 
         #endregion
 
@@ -87,7 +87,7 @@ namespace Balance.Platforms
 
             if (IsMoneyInput)
             {
-                if (int.TryParse(text, out var money))
+                if (float.TryParse(text, out var money))
                 {
                     await client.SendTextMessageAsync(message.Chat, "Способ перевода:", replyMarkup: PlatformMoney, cancellationToken: token);
                     Money = money;
@@ -113,44 +113,57 @@ namespace Balance.Platforms
            
 
                 case PLATFORM_MONEY_SPB:
-                    var camisaSPB = Convert.ToInt32(0.005f * Money);
+                    camisa = Convert.ToInt32(0.005f * Money);
 
+                    currentPlatform = "СПБ";
                     Platform = PLATFORM_MONEY_SPB;
-                    await client.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Сумма перевода: {Money}\nСпособ оплаты: СПБ\nКомиссия: {camisaSPB}\nИтого: {camisaSPB + Money}", replyMarkup: TryMoneyOut, cancellationToken: token);
+                    await client.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Сумма перевода: {Money}\nСпособ оплаты: СПБ\nКомиссия: {camisa}\nИтого: {camisa + Money}", replyMarkup: TryMoneyOut, cancellationToken: token);
                     break;
 
                 case PLATFORM_MONEY_MERGE_BANK:
-                    var camisaBANK = Convert.ToInt32(0.015f * Money);
+                    camisa = Convert.ToInt32(0.015f * Money);
 
                     if (Money <= 2000)
-                        camisaBANK = 30;
+                        camisa = 30;
 
+                    currentPlatform = "Межбанк";
                     Platform = PLATFORM_MONEY_MERGE_BANK;
-                    await client.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Сумма перевода: {Money}\nСпособ оплаты: Межбанк\nКомиссия: {camisaBANK}\nИтого: {camisaBANK + Money}", replyMarkup: TryMoneyOut, cancellationToken: token);
+                    await client.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Сумма перевода: {Money}\nСпособ оплаты: Межбанк\nКомиссия: {camisa}\nИтого: {camisa + Money}", replyMarkup: TryMoneyOut, cancellationToken: token);
                     break;
 
                 case PLATFORM_MONEY_NO_SALE:
+
+                    currentPlatform = "Без комиссии";
                     Platform = PLATFORM_MONEY_NO_SALE;
                     await client.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Сумма перевода: {Money}\nСпособ оплаты: Без комиссии\nКомиссия: 0\nИтого: {Money}", replyMarkup: TryMoneyOut, cancellationToken: token);
                     break;
 
                 case SUCCESS_MONEY:
-                    Out(true);
+                    Out(client, callbackQuery.Message!.Chat, true);
                     break;
 
                 case FAILED_MONEY:
-                    Out(false);
+                    Out(client, callbackQuery.Message!.Chat, false);
                     break;
             }
         }
 
-        public override Task SheetPostAsync()
+        public override async Task SheetPostAsync()
         {
-            throw new NotImplementedException();
+            var range = $"{nameof(Massmo)}!A:E";
+            var valueRange = new ValueRange();
+
+            var sumCamisaMoney = camisa + Money;
+
+            var objectList = new List<object>() { $"{startClick:dd.MM.yy HH:mm}", currentPlatform ?? "ERROR",  MathF.Round(Money, 3), MathF.Round(camisa, 3), MathF.Round((float)(Money + Sentoke.SubtractPercentage(Money, 98) - sumCamisaMoney), 3) };
+            valueRange.Values = [objectList];
+
+            await googleSheets.PostSpreadsheetAsync(googleSheetId, valueRange, range);
         }
 
         public override Task StartRG(ITelegramBotClient client, Chat chat, CancellationToken token)
         {
+            startClick = DateTime.UtcNow + TimeSpan.FromHours(3);
             IsMoneyInput = true;
             return client.SendTextMessageAsync(chat, "Впишите сумму перевода:", cancellationToken: token);
         }

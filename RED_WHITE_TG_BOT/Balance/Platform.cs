@@ -13,10 +13,10 @@ namespace Balance
     {
         public abstract InlineKeyboardButton Main { get; }
 
-        public event Action<bool>? OnOut;
+        public event Action<ITelegramBotClient, Chat, bool>? OnOut;
 
-        private protected void Out(bool isSuccess)
-          => OnOut?.Invoke(isSuccess);
+        private protected void Out(ITelegramBotClient client, Chat chat, bool isSuccess)
+          => OnOut?.Invoke(client, chat, isSuccess);
 
         public abstract Task StartRG(ITelegramBotClient client, Chat chat, CancellationToken token);
 
