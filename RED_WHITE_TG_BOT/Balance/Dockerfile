@@ -7,10 +7,10 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Balance.csproj", "."]
-RUN dotnet restore "./Balance.csproj"
+COPY ["Balance/Balance.csproj", "Balance/"]
+RUN dotnet restore "./Balance/Balance.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/Balance"
 RUN dotnet build "./Balance.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
