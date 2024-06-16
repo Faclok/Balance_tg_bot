@@ -1,8 +1,8 @@
 version: '3.4'
 
 services:
-  red_white_tg_bot:
-    image: ${DOCKER_REGISTRY-}redwhitetgbot
+  maksim_bot:
+    image: ${DOCKER_REGISTRY-}maksim_bot
     build:
       context: .
-      dockerfile: RED_WHITE_TG_BOT/Dockerfile
+      dockerfile: Balance/Dockerfile
