@@ -118,6 +118,7 @@ namespace Balance.Platforms
 
                     if (float.TryParse(text, out curseShare))
                     {
+                        await Console.Out.WriteLineAsync(curseShare.ToString());
                         currentState = CURSE_DEPOSIT;
                         await client.SendTextMessageAsync(message.Chat, "Введите курс пополнения на площадке (например: 90,84 или 93)", cancellationToken: token);
                     }

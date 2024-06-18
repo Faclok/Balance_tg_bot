@@ -6,6 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Google.Apis.Auth.OAuth2;
 using Balance.GoogleSheet;
 using Google.Apis.Sheets.v4.Data;
+using System.Globalization;
 
 namespace Balance
 {
@@ -22,6 +23,9 @@ namespace Balance
 
         static async Task Main(string[] args)
         {
+            await Console.Out.WriteLineAsync(UsernameRoot);
+
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("ru-RU");
             var credential = GoogleAuth.Login();
             var manager = new GoogleSheetsManager(credential);
 
@@ -44,8 +48,10 @@ namespace Balance
             await Task.Delay(Timeout.Infinite);
         }
 
-        private static async void P_OnOut(ITelegramBotClient client, Chat chat,bool isSuccess)
+        private static async void P_OnOut(Platform platform, ITelegramBotClient client, Chat chat,bool isSuccess)
         {
+            platform.OnOut -= P_OnOut;
+
             if (isSuccess)
             {
                 var message = await ClientBot?.SendTextMessageAsync(chat, "Сохраняем в Excel")!;
@@ -53,22 +59,19 @@ namespace Balance
                 await _platform?.SheetPostAsync()!;
 
                 await client.EditMessageTextAsync(chat, message.MessageId, "Успешно сохранено!");
+               
+            } else await ClientBot?.SendTextMessageAsync(chat, "Операция отменена")!;
 
-                _platform.Dispose();
-                _platform = null;
-            } else
-            {
-                _platform?.Dispose();
-                _platform = null;
-                await ClientBot?.SendTextMessageAsync(chat, "Операция отменена")!;
-            }
+            _platform?.Dispose();
+            _platform = null;
         }
 
         private static Task Update(ITelegramBotClient client, Update update, CancellationToken token)
         {
             if (update.Message is { } message && message.Text is { } text)
             {
-                    if (message.Chat.Username != UsernameRoot)
+                Console.WriteLine(text);
+                if (message.Chat.Username != UsernameRoot)
                         return Task.CompletedTask;
 
                     if (text == "/start" && _platform == null)
