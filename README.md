@@ -1,2 +1,16 @@
 # Balance telegram bot
- 
+
+## Start Job
+This application on Telegram Bot and Google Sheets API. To start use application, follow next steps:
+- donwload release .zip and export
+- Find file Balance.exe
+- Start his!
+
+## Edit config
+If you want edit config application, follow next steps:
+- find file config.json and open
+- You available three property:
+  - usernameRoot: username or tag install administrator
+  - googleSheetId: id current Google Sheet, hese want find in URL
+  - apiBot: key from bot. Get his in BotFather
+- If you bot run, to restart his
