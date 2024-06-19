@@ -1,12 +1,10 @@
 ﻿using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Balance.Platforms;
 using Telegram.Bot.Types.ReplyMarkups;
-using Google.Apis.Auth.OAuth2;
 using Balance.GoogleSheet;
-using Google.Apis.Sheets.v4.Data;
 using System.Globalization;
+using Microsoft.Extensions.Configuration;
 
 namespace Balance
 {
@@ -15,14 +13,43 @@ namespace Balance
         public static ITelegramBotClient? ClientBot { get; private set; }
         public static string? BotName { get; private set; }
 
-        public const string UsernameRoot = "procesosnova";
+        public static string? UsernameRoot { get; private set; } = string.Empty;
+
+        private static string? googleSheetId = string.Empty;
 
         private static Platform? _platform;
 
-        private const string googleSheetId = "1fHBh6zeoE2_LPx_b6WO1zNd98SI29n4OaKB3IU4cuA0";
-
         static async Task Main(string[] args)
         {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("config.json", optional: false);
+
+            IConfiguration config = builder.Build();
+
+            UsernameRoot = config.GetSection("usernameRoot").Get<string>();
+            googleSheetId = config.GetSection("googleSheetId").Get<string>();
+
+            var apiBot = config.GetSection("apiBot").Get<string>();
+
+            if(apiBot == null)
+            {
+                Console.WriteLine($"no found property config: {nameof(apiBot)}");
+                return;
+            }
+
+            if (googleSheetId == null)
+            {
+                Console.WriteLine($"no found property config: {nameof(googleSheetId)}");
+                return;
+            }
+
+            if (UsernameRoot == null)
+            {
+                Console.WriteLine($"no found property config: {nameof(UsernameRoot)}");
+                return;
+            }
+
             await Console.Out.WriteLineAsync(UsernameRoot);
 
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("ru-RU");
@@ -39,7 +66,7 @@ namespace Balance
             PlatformCollection.PlatformAdd(Sentoke.MainGlobal, () => new Sentoke(googleSheetId, manager));
 
             await Console.Out.WriteLineAsync("start");
-            ClientBot = new TelegramBotClient("7007363424:AAFNHUTw5FFQ9EyDzIkVH2uYVAYkdQDFQ8g");
+            ClientBot = new TelegramBotClient(apiBot);
             BotName = (await ClientBot.GetMeAsync()).Username;
             await Console.Out.WriteLineAsync("my name: " + BotName);
 
