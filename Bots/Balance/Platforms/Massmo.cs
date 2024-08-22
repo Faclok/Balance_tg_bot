@@ -113,7 +113,7 @@ namespace Balance.Platforms
            
 
                 case PLATFORM_MONEY_SPB:
-                    camisa = Convert.ToInt32(0.005f * Money);
+                    camisa = Convert.ToInt32(0.015f * Money);
 
                     currentPlatform = "СПБ";
                     Platform = PLATFORM_MONEY_SPB;
@@ -121,7 +121,7 @@ namespace Balance.Platforms
                     break;
 
                 case PLATFORM_MONEY_MERGE_BANK:
-                    camisa = Convert.ToInt32(0.015f * Money);
+                    camisa = Convert.ToInt32(0.02f * Money);
 
                     if (Money <= 2000)
                         camisa = 30;
